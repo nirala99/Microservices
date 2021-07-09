@@ -1,0 +1,556 @@
+		+======================+
+		|Introduction to Docker|
+		+======================+
+Welcome to Cloud Shell! Type "help" to get started.
+Your Cloud Platform project in this session is set to qwiklabs-gcp-01-9600de5718cd.
+Use “gcloud config set project [PROJECT_ID]” to change to a different project.
+
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ docker --version
+Docker version 20.10.7, build f0df350
+
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ gcloud auth list
+           Credentialed Accounts
+ACTIVE  ACCOUNT
+*       student-00-32c77fd10c1f@qwiklabs.net
+
+To set the active account, run:
+    $ gcloud config set account `ACCOUNT`
+
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ gcloud config list project
+[core]
+project = qwiklabs-gcp-01-9600de5718cd
+
+Your active configuration is: [cloudshell-12429]
+
+		===========
+		Hello World
+		===========
+
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ docker run hello-world
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ docker images
+REPOSITORY    TAG       IMAGE ID       CREATED        SIZE
+hello-world   latest    d1165f221234   4 months ago   13.3kB
+
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ docker ps -a
+CONTAINER ID   IMAGE         COMMAND    CREATED              STATUS                          PORTS     NAMES
+219fd4dcaacf   hello-world   "/hello"   About a minute ago   Exited (0) About a minute ago             musing_ramanujan
+8934473578c0   hello-world   "/hello"   2 minutes ago        Exited (0) 2 minutes ago                  wonderful_lovelace
+
+
+		=====
+		Build
+		=====
+
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ mkdir test && cd test
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ cat Dockerfile
+
+# Use an official Node runtime as the parent image
+FROM node:6
+# Set the working directory in the container to /app
+WORKDIR /app
+# Copy the current directory contents into the container at /app
+ADD . /app
+# Make the container's port 80 available to the outside world
+EXPOSE 80
+# Run app.js using node when the container launches
+CMD ["node", "app.js"]
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ cat app.js
+const http = require('http');
+
+const hostname = '0.0.0.0';
+const port = 80;
+
+const server = http.createServer((req, res) => {
+    res.statusCode = 200;
+      res.setHeader('Content-Type', 'text/plain');
+        res.end('Hello World\n');
+});
+
+server.listen(port, hostname, () => {
+    console.log('Server running at http://%s:%s/', hostname, port);
+});
+
+process.on('SIGINT', function() {
+    console.log('Caught interrupt signal and will exit');
+    process.exit();
+});
+
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker build -t node-app:0.1 .
+Sending build context to Docker daemon  3.072kB
+Step 1/5 : FROM node:6
+6: Pulling from library/node
+c5e155d5a1d1: Pull complete
+221d80d00ae9: Pull complete
+4250b3117dca: Pull complete
+3b7ca19181b2: Pull complete
+425d7b2a5bcc: Pull complete
+69df12c70287: Pull complete
+ea2f5386a42d: Pull complete
+d421d2b3c5eb: Pull complete
+Digest: sha256:e133e66ec3bfc98da0440e552f452e5cdf6413319d27a2db3b01ac4b319759b3
+Status: Downloaded newer image for node:6
+ ---> ab290b853066
+Step 2/5 : WORKDIR /app
+ ---> Running in a5d833dec064
+Removing intermediate container a5d833dec064
+ ---> 49dce1fe5e6d
+Step 3/5 : ADD . /app
+ ---> be4de0372275
+Step 4/5 : EXPOSE 80
+ ---> Running in 7e7270cd2627
+Removing intermediate container 7e7270cd2627
+ ---> a02e313e147b
+Step 5/5 : CMD ["node", "app.js"]
+ ---> Running in 504f571a5577
+Removing intermediate container 504f571a5577
+ ---> 9166af067d53
+Successfully built 9166af067d53
+Successfully tagged node-app:0.1
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$
+
+
+		===
+		Run
+		===
+
+
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ docker run -p 4000:80 --name my-app node-app:0.1
+Server running at http://0.0.0.0:80/
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ curl http://localhost:4000
+const port = 80;
+Hello World
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ docker stop my-app && docker rm my-app
+my-app
+my-app
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ docker run -p 4000:80 --name my-app -d node-app:0.1
+99894ff71515dda19798f99ad520d172062e389e3ac50e4f59c18f8f2c552124
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ docker ps
+CONTAINER ID   IMAGE          COMMAND         CREATED          STATUS          PORTS                  NAMES
+99894ff71515   node-app:0.1   "node app.js"   26 seconds ago   Up 25 seconds   0.0.0.0:4000->80/tcp   my-app
+
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ docker logs 99894ff71515
+Server running at http://0.0.0.0:80/
+student_00_32c77fd10c1f@cloudshell:~ (qwiklabs-gcp-01-9600de5718cd)$ cd test
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ vi app.js
+#Edit app.js with a text editor and replace "Hello World" with another string "Welcome to Cloud".
+
+
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker build -t node-app:0.2 .
+Sending build context to Docker daemon  3.072kB
+Step 1/5 : FROM node:6
+ ---> ab290b853066
+Step 2/5 : WORKDIR /app
+ ---> Using cache
+ ---> 49dce1fe5e6d
+Step 3/5 : ADD . /app
+ ---> 20f7ca2a92ce
+Step 4/5 : EXPOSE 80
+ ---> Running in 5d5f16d06884
+Removing intermediate container 5d5f16d06884
+ ---> 084f06e5396e
+Step 5/5 : CMD ["node", "app.js"]
+ ---> Running in af1a987b4834
+Removing intermediate container af1a987b4834
+ ---> c0e4d9198522
+Successfully built c0e4d9198522
+Successfully tagged node-app:0.2
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker run -p 8080:80 --name my-app-2 -d node-app:0.2
+49811aa5a2a1b1c0f279ded56c7fa377bfa6242f0b01bb9dfc783094eac38bf6
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker ps
+CONTAINER ID   IMAGE          COMMAND         CREATED         STATUS         PORTS                  NAMES
+49811aa5a2a1   node-app:0.2   "node app.js"   9 seconds ago   Up 8 seconds   0.0.0.0:8080->80/tcp   my-app-2
+99894ff71515   node-app:0.1   "node app.js"   3 minutes ago   Up 3 minutes   0.0.0.0:4000->80/tcp   my-app
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ curl http://localhost:8080
+Welcome to Cloud
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ curl http://localhost:4000
+Hello World
+
+		=====
+		Debug
+		=====
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker logs -f 99894ff71515
+Server running at http://0.0.0.0:80/
+                                   
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker exec -it 99894ff71515 bash
+root@99894ff71515:/app# ls
+Dockerfile  app.js
+root@99894ff71515:/app# exit
+exit
+
+
+#You can examine a container's metadata in Docker by using Docker inspect:
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker inspect 99894ff71515
+[
+    {
+        "Id": "99894ff71515dda19798f99ad520d172062e389e3ac50e4f59c18f8f2c552124",
+        "Created": "2021-07-09T11:54:32.506447535Z",
+        "Path": "node",
+        "Args": [
+            "app.js"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 2071,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2021-07-09T11:54:32.929686293Z",
+            "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "Image": "sha256:9166af067d535e9f6c66b02293bf66d318c698645f238188761004515aee80d5",
+        "ResolvConfPath": "/var/lib/docker/containers/99894ff71515dda19798f99ad520d172062e389e3ac50e4f59c18f8f2c552124/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/99894ff71515dda19798f99ad520d172062e389e3ac50e4f59c18f8f2c552124/hostname",
+        "HostsPath": "/var/lib/docker/containers/99894ff71515dda19798f99ad520d172062e389e3ac50e4f59c18f8f2c552124/hosts",
+        "LogPath": "/var/lib/docker/containers/99894ff71515dda19798f99ad520d172062e389e3ac50e4f59c18f8f2c552124/99894ff71515dda19798f99ad520d172062e389e3ac50e4f59c18f8f2c552124-json.log",
+        "Name": "/my-app",
+        "RestartCount": 0,
+        "Driver": "overlay2",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "docker-default",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": null,
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "default",
+            "PortBindings": {
+                "80/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "4000"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "no",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "CapAdd": null,
+            "CapDrop": null,
+            "CgroupnsMode": "host",
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": null,
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "ConsoleSize": [
+                0,
+                0
+            ],
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": [],
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": [],
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "KernelMemory": 0,
+            "KernelMemoryTCP": 0,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": false,
+            "PidsLimit": null,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/asound",
+                "/proc/acpi",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/sys/firmware"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/fdbc6a5fe0564f8f13b82807dcdf4cb2a67af01298ba7d0c99ba7e868d22f613-init/diff:/var/lib/docker/overlay2/3a062119fae3c2cc01f99c3f3606d51ac5a4b973dd5e3e8ccdf88f41fe4030f7/diff:/var/lib/docker/overlay2/6badb0712faacb94fb657f3a2fabcd056d7ceac3a9c9fddccaad7b339462c590/diff:/var/lib/docker/overlay2/b9a198baf4ff2c28ec1a0b11cfbe2e610291c69aab76541f8d27498240317fca/diff:/var/lib/docker/overlay2/04198cc05281433e4545ae897b77862a115f6736c517b8e008a10808a0968e80/diff:/var/lib/docker/overlay2/6542efd2198b3b129b7f5a36b773a01d65795fa507cff5d2ffcb234c817eee67/diff:/var/lib/docker/overlay2/770962e3798eb5df87639ed2eb4796951469c2b9f0a5ab561ea4f79b815bf9f3/diff:/var/lib/docker/overlay2/5155b3188d6f3b24e40032f71f9dace56c3651978d73445187a0768183c6ce23/diff:/var/lib/docker/overlay2/cd65ff8ecec1e6f8dd48da8e60988017e736437dad7d795ac9a9afa0017131bd/diff:/var/lib/docker/overlay2/56f3c3909ba8afb5f233bdb710dde40fa1c199b7c0f2655cccc75ee148ac46af/diff:/var/lib/docker/overlay2/90abfd81cfe1eca56e8cab0066d4fa6c3372d1a300d9ff647da46b40f7998c7a/diff",
+                "MergedDir": "/var/lib/docker/overlay2/fdbc6a5fe0564f8f13b82807dcdf4cb2a67af01298ba7d0c99ba7e868d22f613/merged",
+                "UpperDir": "/var/lib/docker/overlay2/fdbc6a5fe0564f8f13b82807dcdf4cb2a67af01298ba7d0c99ba7e868d22f613/diff",
+                "WorkDir": "/var/lib/docker/overlay2/fdbc6a5fe0564f8f13b82807dcdf4cb2a67af01298ba7d0c99ba7e868d22f613/work"
+            },
+            "Name": "overlay2"
+        },
+        "Mounts": [],
+        "Config": {
+            "Hostname": "99894ff71515",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "80/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "NODE_VERSION=6.17.1",
+                "YARN_VERSION=1.15.2"
+            ],
+            "Cmd": [
+                "node",
+                "app.js"
+            ],
+            "Image": "node-app:0.1",
+            "Volumes": null,
+            "WorkingDir": "/app",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": {}
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "122b70a55e06c3fb2018973f13a54a32d48b0a87d2e797d66adf1f5c1e7473c7",
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "Ports": {
+                "80/tcp": [
+                    {
+                        "HostIp": "0.0.0.0",
+                        "HostPort": "4000"
+                    }
+                ]
+            },
+            "SandboxKey": "/var/run/docker/netns/122b70a55e06",
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "a145551d6de49fd79b68aa6d8d1acd1a8b3a1044f261fd25937a0bd837f7d6f4",
+            "Gateway": "172.18.0.1",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "172.18.0.2",
+            "IPPrefixLen": 16,
+            "IPv6Gateway": "",
+            "MacAddress": "02:42:ac:12:00:02",
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "49f39810c8db9cc54e5f794f3842d6bfb2129d9cf639f3ec798fa4e6e5a1bd21",
+                    "EndpointID": "a145551d6de49fd79b68aa6d8d1acd1a8b3a1044f261fd25937a0bd837f7d6f4",
+                    "Gateway": "172.18.0.1",
+                    "IPAddress": "172.18.0.2",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:ac:12:00:02",
+                    "DriverOpts": null
+                }
+            }
+        }
+    }
+]
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' 99894ff71515
+172.18.0.2
+
+		=======
+		Publish
+		=======
+
+For gcr:
+[hostname]= gcr.io
+[project-id]= your project's ID
+[image]= your image name
+[tag]= any string tag of your choice. If unspecified, it defaults to "latest".
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ gcloud config list project
+[core]
+project = qwiklabs-gcp-01-9600de5718cd
+
+Your active configuration is: [cloudshell-26447]
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker tag node-app:0.2 gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app:0.2
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker images
+REPOSITORY                                     TAG       IMAGE ID       CREATED          SIZE
+node-app                                       0.2       c0e4d9198522   9 minutes ago    884MB
+gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app   0.2       c0e4d9198522   9 minutes ago    884MB
+node-app                                       0.1       9166af067d53   15 minutes ago   884MB
+hello-world                                    latest    d1165f221234   4 months ago     13.3kB
+node                                           6         ab290b853066   2 years ago      884MB
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker push gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app:0.2
+The push refers to repository [gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app]
+5741da4dd0c2: Pushed
+bce125cb5418: Pushed
+f39151891503: Pushed
+f1965d3c206f: Pushed
+a27518e43e49: Layer already exists
+910d7fd9e23e: Layer already exists
+4230ff7f2288: Layer already exists
+2c719774c1e1: Layer already exists
+ec62f19bb3aa: Layer already exists
+f94641f1fe1f: Layer already exists
+0.2: digest: sha256:593c00f0d36f2d936cd2fb82e8328444f30e7ad00d0e013311de86864707f578 size: 2422
+
+
+#Stop all containers:
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker stop $(docker ps -q)
+49811aa5a2a1
+99894ff71515
+
+#Remove all containers:
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker rm $(docker ps -aq)
+49811aa5a2a1
+99894ff71515
+6471ffd89d66
+219fd4dcaacf
+8934473578c0
+ac2ef22faf7a
+ba4a015f761a
+f9c558599b89
+
+
+#You have to remove the child images (of node:6) before you remove the node image.
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker rmi node-app:0.2 gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app node-app:0.1
+Untagged: node-app:0.2
+Untagged: node-app:0.1
+Deleted: sha256:9166af067d535e9f6c66b02293bf66d318c698645f238188761004515aee80d5
+Deleted: sha256:a02e313e147bc60c6dfb0f215e66f39f94a1adbcd8f6e98e790e0fb612876eb7
+Deleted: sha256:be4de03722751d6e18f34fafc49a67f0bbd584c7178e2753ecb9de022e185a06
+Deleted: sha256:5e5e38c12913d4c231d0edb95899197f55b752d8cec7726895cd7dd4acaf0118
+Error: No such image: gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker rmi node:6
+Untagged: node:6
+Untagged: node@sha256:e133e66ec3bfc98da0440e552f452e5cdf6413319d27a2db3b01ac4b319759b3
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker rmi $(docker images -aq) # remove remaining images
+Untagged: gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app:0.2
+Untagged: gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app@sha256:593c00f0d36f2d936cd2fb82e8328444f30e7ad00d0e013311de86864707f578
+Deleted: sha256:c0e4d9198522c91d4fa981a10254de0d44f52d89f2d731b31ceebb91838ddab5
+Deleted: sha256:084f06e5396ea87ae0b18175eb424e3fbfdcbb5c09238ab9301911eec1d18efa
+Deleted: sha256:20f7ca2a92ced740a7fa4a0bdd147dfe3bbfc3fbc5ec823d93c9ad771381aa7b
+Deleted: sha256:9fbc40d2097b62d0a71b61dfa24dfb0ac4718bb5e8d618bae5bac22f7bb7a1ef
+Deleted: sha256:49dce1fe5e6d75ee5d70383388748078b6c7d8ebfd5700964d481f664767e095
+Deleted: sha256:b10355a902173437a7b1621aa04bc95705dea974da5e17318b495e2bdf8ebc8c
+Deleted: sha256:ab290b853066caedc75778bd4839da568ecb2a6b8e27442e0b1ce3c4741f1184
+Deleted: sha256:bf0467917e15808e6e9c38268a58f048842fefb22f0a28b86e822c3e15630b14
+Deleted: sha256:dbc5d843fe6c57402d1d4b5cdded731b87189ea669351a96e1cb6ff5ffaa77a6
+Deleted: sha256:8d8dabce32d508dfcd126ab43cde7b690764c4bd06800e7cac816d367473ad3e
+Deleted: sha256:addff6454b75bcccc23ba0cdbf9ff5d83f6df71523cd3428261d1785c3e3c592
+Deleted: sha256:dae4f674403b331cb8c19b2c238ffa7d5a7249a1b4fafc4725054201dce3341a
+Deleted: sha256:a9a9c8853295275070975beba78ec0f573172e6e41b30232a00d8af0d49b8ef3
+Deleted: sha256:ddf0293e8e23246803d265b158ffbb9453d925fe392b43515984815853e9121b
+Deleted: sha256:f94641f1fe1f5c42c325652bf55f0513c881c86b620b912b15460e0bca07cc12
+Untagged: hello-world:latest
+Untagged: hello-world@sha256:e86134b19508866f9a94095ebed0cc4322d1340f1855f52057a748ca06880720
+Deleted: sha256:d1165f2212346b2bab48cb01c1e39ee8ad1be46b87873d9ca7a4e434980a7726
+Deleted: sha256:f22b99068db93900abe17f7f5e09ec775c2826ecfe9db961fea68293744144bd
+Error: No such image: 20f7ca2a92ce
+Error: No such image: 084f06e5396e
+Error: No such image: 49dce1fe5e6d
+Error: No such image: ab290b853066
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker images
+REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker pull gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app:0.2
+0.2: Pulling from qwiklabs-gcp-01-9600de5718cd/node-app
+c5e155d5a1d1: Pull complete
+221d80d00ae9: Pull complete
+4250b3117dca: Pull complete
+3b7ca19181b2: Pull complete
+425d7b2a5bcc: Pull complete
+69df12c70287: Pull complete
+ea2f5386a42d: Pull complete
+d421d2b3c5eb: Pull complete
+aec3cc20d31d: Pull complete
+dec7a401a09a: Pull complete
+Digest: sha256:593c00f0d36f2d936cd2fb82e8328444f30e7ad00d0e013311de86864707f578
+Status: Downloaded newer image for gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app:0.2
+gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app:0.2
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ docker run -p 4000:80 -d gcr.io/qwiklabs-gcp-01-9600de5718cd/node-app:0.2
+3a76375e28694f5a0a906703ffc45f0f72c6f5fdb5a328ec116d1fdeed6fac7b
+
+student_00_32c77fd10c1f@cloudshell:~/test (qwiklabs-gcp-01-9600de5718cd)$ curl http://localhost:4000
+Welcome to Cloud
+
+		===
+		END
+		===
