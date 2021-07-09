@@ -1,0 +1,31 @@
+#To install JDK 8
+https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u282-b08/OpenJDK8U-jdk_x64_windows_hotspot_8u282b08.zip
+
+#FOR 32BIT
+https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u282-b08/OpenJDK8U-jdk_x86-32_windows_hotspot_8u282b08.zip
+
+# To install Tomcat 8
+https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.0/bin/apache-tomcat-8.5.0-windows-x64.zip
+
+#FOR 32BIT
+https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.0/bin/apache-tomcat-8.5.0-windows-x86.zip
+
+# To install mysql 5.6
+https://downloads.mysql.com/archives/get/p/23/file/mysql-5.6.47-winx64.zip
+
+#FOR 32BIT
+https://downloads.mysql.com/archives/get/p/23/file/mysql-5.6.47-win32.zip
+
+#To install gradle 3.5
+https://gradle.org/next-steps/?version=3.5&format=bin
+
+
+To install eclipse and Spring STS plugin
+https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/photon/R/eclipse-jee-photon-R-win32-x86_64.zip
+
+To add a plugin, use below repository URL https://download.springsource.com/release/TOOLS/update/e4.8/
+#Create eclipse.bat in eclipse installation directory with below contents
+# don't forget to update JAVA_HOME variable
+
+set JAVA_HOME=<JDK installation directory>
+start "eclipse" eclipse.exe -vm "%JAVA_HOME%\bin\javaw.exe" -data .
