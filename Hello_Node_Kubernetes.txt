@@ -1,0 +1,353 @@
++=====================+
+|Hello Node Kubernetes|
++=====================+
+
+Steps
+=====
+-> Create a Node.js server.
+-> Create a Docker container image.
+-> Create a container cluster.
+-> Create a Kubernetes pod.
+-> Scale up your services.
+
+
+===============================
+Create your Node.js application
+===============================
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ cat server.js
+var http = require('http');
+var handleRequest = function(request, response) {
+          response.writeHead(200);
+          response.end("Hello World!");
+}
+var www = http.createServer(handleRequest);
+www.listen(8080);
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ node server.js
+
+Open URL:
+https://8080-e0937551-1ff5-48be-82be-3b3710e31886.ql-asia-southeast1-glxv.cloudshell.dev/?authuser=1
+
+
+===============================
+Create a Docker container image
+===============================
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ cat Dockerfile
+FROM node:6.9.2
+EXPOSE 8080
+COPY server.js .
+CMD node server.js
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ docker build -t gcr.io/wiklabs-gcp-02-83796cce13f1/hello-node:v1 .
+Sending build context to Docker daemon  35.84kB
+Step 1/4 : FROM node:6.9.2
+6.9.2: Pulling from library/node
+75a822cd7888: Pull complete
+57de64c72267: Pull complete
+4306be1e8943: Pull complete
+871436ab7225: Pull complete
+0110c26a367a: Pull complete
+1f04fe713f1b: Pull complete
+ac7c0b5fb553: Pull complete
+Digest: sha256:2e95be60faf429d6c97d928c762cb36f1940f4456ce4bd33fbdc34de94a5e043
+Status: Downloaded newer image for node:6.9.2
+ ---> faaadb4aaf9b
+Step 2/4 : EXPOSE 8080
+ ---> Running in 0306b8ebb67a
+Removing intermediate container 0306b8ebb67a
+ ---> 8f21d2f0a8ca
+Step 3/4 : COPY server.js .
+ ---> 06da90317497
+Step 4/4 : CMD node server.js
+ ---> Running in d289c33e7acb
+Removing intermediate container d289c33e7acb
+ ---> f0aae119a771
+Successfully built f0aae119a771
+Successfully tagged gcr.io/wiklabs-gcp-02-83796cce13f1/hello-node:v1
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ docker run -d -p 8080:8080 gcr.io/wiklabs-gcp-02-83796cce13f1/hello-node:v1
+63424e2c10990f678c9a72e2e71f2b7c9e68c11296bf6745f4ee0911b9ac3388
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ curl http://localhost:8080
+Hello World!
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ docker ps
+CONTAINER ID   IMAGE                                              COMMAND                  CREATED          STATUS          PORTS     			NAMES
+63424e2c1099   gcr.io/wiklabs-gcp-02-83796cce13f1/hello-node:v1   "/bin/sh -c 'node se…"   46 seconds ago   Up 45 seconds   0.0.0.0:8080->8080/tcp   	awesome_chatelet
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ docker stop 63424e2c1099
+63424e2c1099
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ gcloud auth configure-docker
+WARNING: Your config file at [/home/student_00_860be336cc34/.docker/config.json] contains these credential helper entries:
+
+{
+  "credHelpers": {
+    "gcr.io": "gcloud",
+    "us.gcr.io": "gcloud",
+    "eu.gcr.io": "gcloud",
+    "asia.gcr.io": "gcloud",
+    "staging-k8s.gcr.io": "gcloud",
+    "marketplace.gcr.io": "gcloud"
+  }
+}
+Adding credentials for all GCR repositories.
+WARNING: A long list of credential helpers may cause delays running 'docker build'. We recommend passing the registry name to configure only the registry you are using.
+gcloud credential helpers already registered correctly.
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ docker push gcr.io/wiklabs-gcp-02-83796cce13f1/hello-node:v1
+<See on Google Container Registry>
+
+
+===================
+Create your cluster
+===================
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ gcloud config set project qwiklabs-gcp-02-83796cce13f1
+Updated property [core/project].
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ gcloud container clusters create hello-world \
+>                 --num-nodes 2 \
+>                 --machine-type n1-standard-1 \
+>                 --zone us-central1-a
+WARNING: Starting in January 2021, clusters will use the Regular release channel by default when `--cluster-version`, `--release-channel`, `--no-enable-autoupgrade`, and `--no-enable-autorepair` flags are not specified.
+WARNING: Currently VPC-native is not the default mode during cluster creation. In the future, this will become the default mode and can be disabled using `--no-enable-ip-alias` flag. Use `--[no-]enable-ip-alias` flag to suppress this warning.
+WARNING: Starting with version 1.18, clusters will have shielded GKE nodes by default.
+WARNING: Your Pod address range (`--cluster-ipv4-cidr`) can accommodate at most 1008 node(s).
+WARNING: Starting with version 1.19, newly created clusters and node-pools will have COS_CONTAINERD as the default node image when no image type is specified.
+Creating cluster hello-world in us-central1-a... Cluster is being health-checked (master is healthy)...done.
+Created [https://container.googleapis.com/v1/projects/qwiklabs-gcp-02-83796cce13f1/zones/us-central1-a/clusters/hello-world].
+To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-central1-a/hello-world?project=qwiklabs-gcp-02-83796cce13f1
+kubeconfig entry generated for hello-world.
+NAME         LOCATION       MASTER_VERSION   MASTER_IP     MACHINE_TYPE   NODE_VERSION     NUM_NODES  STATUS
+hello-world  us-central1-a  1.19.9-gke.1900  35.192.35.70  n1-standard-1  1.19.9-gke.1900  2          RUNNING
+
+===============
+Create your pod
+===============
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl create deployment hello-node \
+>     --image=gcr.io/qwiklabs-gcp-02-83796cce13f1/hello-node:v1
+deployment.apps/hello-node created
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl get deployments
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+hello-node   0/1     1            0           15s
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl get pods
+NAME                          READY   STATUS             RESTARTS   AGE
+hello-node-5bb6c4b94d-nvjgl   0/1     ImagePullBackOff   0          24s
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl config view
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://35.192.35.70
+  name: gke_qwiklabs-gcp-02-83796cce13f1_us-central1-a_hello-world
+contexts:
+- context:
+    cluster: gke_qwiklabs-gcp-02-83796cce13f1_us-central1-a_hello-world
+    user: gke_qwiklabs-gcp-02-83796cce13f1_us-central1-a_hello-world
+  name: gke_qwiklabs-gcp-02-83796cce13f1_us-central1-a_hello-world
+current-context: gke_qwiklabs-gcp-02-83796cce13f1_us-central1-a_hello-world
+kind: Config
+preferences: {}
+users:
+- name: gke_qwiklabs-gcp-02-83796cce13f1_us-central1-a_hello-world
+  user:
+    auth-provider:
+      config:
+        access-token: ya29.a0ARrdaM-D-xKOJqHrKnobPnUlthAKpWxeFW7iygzt_hLmJ-UZNn51HoOFtgDZjHke2aN1AqjKywCmg4F-oPqgyt3QMGs-EvJ9yq-HAZuXNfvjMxpsRMJm9qpjE7o-NQdNATV3_-xtHeOtQyEnalBBcXCY02iBOBPK2PTyWLKwhBd49P6e2TJA2nw5ZAXS6ZWFDJnLptSqaf2zc8z3Utp7luTp5eNGI8_LTjzJvHrzt7jSjIkOZaDGsytX6tnuasgDLGsN2A
+        cmd-args: config config-helper --format=json
+        cmd-path: /usr/lib/google-cloud-sdk/bin/gcloud
+        expiry: "2021-07-10T13:58:23Z"
+        expiry-key: '{.credential.token_expiry}'
+        token-key: '{.credential.access_token}'
+      name: gcp
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl get events
+LAST SEEN   TYPE      REASON                    OBJECT                                            MESSAGE
+4m3s        Normal    Starting                  node/gke-hello-world-default-pool-a0b898b2-n6m4   Starting kubelet.
+4m2s        Warning   InvalidDiskCapacity       node/gke-hello-world-default-pool-a0b898b2-n6m4   invalid capacity 0 on image filesystem
+3m47s       Normal    NodeHasSufficientMemory   node/gke-hello-world-default-pool-a0b898b2-n6m4   Node gke-hello-world-default-pool-a0b898b2-n6m4 status is now: NodeHasSufficientMemory
+3m52s       Normal    NodeHasNoDiskPressure     node/gke-hello-world-default-pool-a0b898b2-n6m4   Node gke-hello-world-default-pool-a0b898b2-n6m4 status is now: NodeHasNoDiskPressure
+3m52s       Normal    NodeHasSufficientPID      node/gke-hello-world-default-pool-a0b898b2-n6m4   Node gke-hello-world-default-pool-a0b898b2-n6m4 status is now: NodeHasSufficientPID
+3m52s       Normal    NodeAllocatableEnforced   node/gke-hello-world-default-pool-a0b898b2-n6m4   Updated Node Allocatable limit across pods
+2m52s       Normal    RegisteredNode            node/gke-hello-world-default-pool-a0b898b2-n6m4   Node gke-hello-world-default-pool-a0b898b2-n6m4 event: Registered Node gke-hello... in Controller
+2m52s       Warning   ContainerdStart           node/gke-hello-world-default-pool-a0b898b2-n6m4   Starting containerd container runtime...
+2m52s       Warning   DockerStart               node/gke-hello-world-default-pool-a0b898b2-n6m4   Starting Docker Application Container Engine...
+2m52s       Warning   NodeSysctlChange          node/gke-hello-world-default-pool-a0b898b2-n6m4
+2m52s       Warning   KubeletStart              node/gke-hello-world-default-pool-a0b898b2-n6m4   Started Kubernetes kubelet.
+2m47s       Normal    Starting                  node/gke-hello-world-default-pool-a0b898b2-n6m4   Starting kube-proxy.
+4m7s        Normal    Starting                  node/gke-hello-world-default-pool-a0b898b2-q0f4   Starting kubelet.
+4m7s        Warning   InvalidDiskCapacity       node/gke-hello-world-default-pool-a0b898b2-q0f4   invalid capacity 0 on image filesystem
+3m53s       Normal    NodeHasSufficientMemory   node/gke-hello-world-default-pool-a0b898b2-q0f4   Node gke-hello-world-default-pool-a0b898b2-q0f4 status is now: NodeHasSufficientMemory
+3m53s       Normal    NodeHasNoDiskPressure     node/gke-hello-world-default-pool-a0b898b2-q0f4   Node gke-hello-world-default-pool-a0b898b2-q0f4 status is now: NodeHasNoDiskPressure
+3m47s       Normal    NodeHasSufficientPID      node/gke-hello-world-default-pool-a0b898b2-q0f4   Node gke-hello-world-default-pool-a0b898b2-q0f4 status is now: NodeHasSufficientPID
+3m56s       Normal    NodeAllocatableEnforced   node/gke-hello-world-default-pool-a0b898b2-q0f4   Updated Node Allocatable limit across pods
+2m52s       Warning   ContainerdStart           node/gke-hello-world-default-pool-a0b898b2-q0f4   Starting containerd container runtime...
+2m52s       Warning   DockerStart               node/gke-hello-world-default-pool-a0b898b2-q0f4   Starting Docker Application Container Engine...
+2m52s       Warning   KubeletStart              node/gke-hello-world-default-pool-a0b898b2-q0f4   Started Kubernetes kubelet.
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl logs hello-node-5bb6c4b94d-nvjgl
+<See log>
+
+======================
+Allow external traffic
+======================
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl expose deployment hello-node --type="LoadBalancer" --port=8080
+service/hello-node exposed
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl get services
+NAME         TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+hello-node   LoadBalancer   10.3.243.200   <pending>     8080:31676/TCP   10s
+kubernetes   ClusterIP      10.3.240.1     <none>        443/TCP          5m39s
+
+=====================
+Scale up your service
+=====================
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl scale deployment hello-node --replicas=4
+deployment.apps/hello-node scaled
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl get deployment
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+hello-node   0/4     4            0           4m50s
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl get pods
+NAME                          READY   STATUS             RESTARTS   AGE
+hello-node-5bb6c4b94d-js6mc   0/1     ImagePullBackOff   0          24s
+hello-node-5bb6c4b94d-nvjgl   0/1     ImagePullBackOff   0          5m1s
+hello-node-5bb6c4b94d-pl26q   0/1     ImagePullBackOff   0          24s
+hello-node-5bb6c4b94d-v2nnj   0/1     ImagePullBackOff   0          24s
+
+===================================
+Roll out an upgrade to your service
+===================================
+-> replace response.end("Hello Kubernetes World!");
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ cat server.js
+var http = require('http');
+var handleRequest = function(request, response) {
+          response.writeHead(200);
+          response.end("Hello Kubernetes World!");
+}
+var www = http.createServer(handleRequest);
+www.listen(8080);
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ docker build -t gcr.io/qwiklabs-gcp-02-83796cce13f1/hello-node:v2 .
+Sending build context to Docker daemon  231.4kB
+Step 1/4 : FROM node:6.9.2
+ ---> faaadb4aaf9b
+Step 2/4 : EXPOSE 8080
+ ---> Using cache
+ ---> 8f21d2f0a8ca
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: "2021-07-10T13:05:13Z"
+  generation: 2
+  labels:
+    app: hello-node
+  name: hello-node
+  namespace: default
+  resourceVersion: "3603"
+  selfLink: /apis/apps/v1/namespaces/default/deployments/hello-node
+  uid: c503f78e-a847-4456-8446-d902ec939c93
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 4
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: hello-node
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: hello-node
+    spec:
+      containers:
+      - image: gcr.io/qwiklabs-gcp-02-83796cce13f1/hello-node:v1
+        imagePullPolicy: IfNotPresent
+        name: hello-node
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+Step 3/4 : COPY server.js .
+ ---> e608b3f7df22
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: "2021-07-10T13:05:13Z"
+  generation: 2
+  labels:
+    app: hello-node
+  name: hello-node
+  namespace: default
+  resourceVersion: "3603"
+  selfLink: /apis/apps/v1/namespaces/default/deployments/hello-node
+  uid: c503f78e-a847-4456-8446-d902ec939c93
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 4
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: hello-node
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: hello-node
+    spec:
+      containers:
+      - image: gcr.io/qwiklabs-gcp-02-83796cce13f1/hello-node:v1
+        imagePullPolicy: IfNotPresent
+        name: hello-node
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+Step 4/4 : CMD node server.js
+ ---> Running in 311d0a345d2e
+Removing intermediate container 311d0a345d2e
+ ---> 254d06ee8761
+Successfully built 254d06ee8761
+Successfully tagged gcr.io/qwiklabs-gcp-02-83796cce13f1/hello-node:v2
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ docker push gcr.io/qwiklabs-gcp-02-83796cce13f1/hello-node:v2              
+The push refers to repository [gcr.io/qwiklabs-gcp-02-83796cce13f1/hello-node]
+a9e852b73642: Pushed
+381c97ba7dc3: Pushed
+604c78617f34: Pushed
+fa18e5ffd316: Pushed
+0a5e2b2ddeaa: Pushed
+53c779688d06: Pushed
+60a0858edcd5: Pushed
+b6ca02dfe5e6: Pushed
+v2: digest: sha256:ef441f6cae9649ef6bc9e626b84ff5271c53440cc8cd84843408bf29e4969d56 size: 2002
+
+student_00_860be336cc34@cloudshell:~ (qwiklabs-gcp-02-83796cce13f1)$ kubectl get deployments
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+hello-node   0/4     4            0           14m
