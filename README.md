@@ -21,6 +21,7 @@
 [Microservice Architecture API-Gateway](/Microservice-Architecture-API-Gateway-Considerations.pdf)<br>
 [API Gateway](https://microservices.io/patterns/apigateway.html)<br>
 [NGINX Solution](https://www.nginx.com/solutions/)<br>
+[API Gateway Pattern](https://docs.microsoft.com/en-us/dotnet/architecture/microservices/architect-microservice-container-applications/direct-client-to-microservice-communication-versus-the-api-gateway-pattern)
 
 ### Load Balance
 [Load Balancer](https://load-balancer.inlab.net/articles/free-and-open-source-load-balancing-software-and-projects/)<br>
