@@ -19,7 +19,8 @@
  
 ### Microservices Architecture
 [Microservice Architecture API-Gateway](/Microservice-Architecture-API-Gateway-Considerations.pdf)<br>
-[API Gateway](https://microservices.io/patterns/apigateway.html)
+[API Gateway](https://microservices.io/patterns/apigateway.html)<b>
+[NGINX Solution](https://www.nginx.com/solutions/)
 
 ### Load Balance
 [Load Balancer](https://load-balancer.inlab.net/articles/free-and-open-source-load-balancing-software-and-projects/)
