@@ -14,8 +14,8 @@
 
 
 ### ELK (Elasticsearch, Logstash & Kibana) Stack
-[Guru99](https://www.guru99.com/elk-stack-tutorial.html)<b>
+[Guru99](https://www.guru99.com/elk-stack-tutorial.html)<br>
   
  
 ### Microservices Architecture
-[Microservice Architecture API-Gateway](/Microservice-Architecture-API-Gateway-Considerations.pdf)
+[Microservice Architecture API-Gateway](/Microservice-Architecture-API-Gateway-Considerations.pdf)<br>
