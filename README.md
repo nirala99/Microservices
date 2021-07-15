@@ -1,6 +1,6 @@
 
-## Microservices
-================
+# Microservices
+
 [Setup Software](/setup-microservices.txt)<br>
 [Introduction to Docker](/Intro_to_Docker.txt)<br>
 [K8 nstallation on EC2 Ubuntu](/K8-Installation-EC2-Ubuntu.txt)<br>
@@ -13,5 +13,5 @@
 [AWS-Nuke](https://github.com/rebuy-de/aws-nuke)<br>
 
 
-## ELK (Elasticsearch, Logstash & Kibana) Stack
+### ELK (Elasticsearch, Logstash & Kibana) Stack
 [Guru99](https://www.guru99.com/elk-stack-tutorial.html)<b>
